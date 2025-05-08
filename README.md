@@ -74,8 +74,8 @@ o	Develop a mobile app version of the bookmark manager for iOS and Android.
 ________________________________________
 ## How to Run the Project
 1.	Clone the repository:
-git clone https://github.com/<your-username>/<repository-name>.git
-cd <repository-name>
+git clone https://github.com/Leenkh3/flask-bookmark-app.git
+cd flask-bookmark-app
 2.	Create a virtual environment and activate it:
 python -m venv venv
 #Linux or macOS: source venv/bin/activate  
@@ -84,9 +84,11 @@ python -m venv venv
 pip install -r requirements.txt
 4.	Create a .env file and add the following:
 FLASK_SECRET_KEY=your_secret_key
-5.	Run the application:
+Replace your_secret_key_here with a random string. You can generate one using Python:
+python -c "import secrets; print(secrets.token_hex(16))"
+6.	Run the application:
 flask run
-6.	Open the app in your browser:
+7.	Open the app in your browser:
 http://127.0.0.1:5000
 ________________________________________
 ## Conclusion
