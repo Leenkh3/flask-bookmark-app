@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bookmark Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
+</head>
+<body class="font-sans text-gray-800 dark:text-gray-100 bg-gradient-to-r from-orange-50 via-orange-100 to-orange-200 dark:from-gray-900 dark:to-gray-800 min-h-screen p-6 transition-colors duration-500">
+
+  <!-- Wrapper -->
+  <div class="max-w-3xl mx-auto">
+
+    <!-- Header / Navbar -->
+    <header class="bg-orange-100 dark:bg-gray-700 py-4 shadow-md rounded-xl mb-6 px-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-orange-600 dark:text-orange-300">🔖 Bookmark Manager</h1>
+      <div class="flex items-center space-x-4">
+        <button onclick="toggleDarkMode()" class="text-sm text-orange-600 dark:text-orange-300 underline">🌓 Toggle Dark Mode</button>
+        {% if current_user.is_authenticated %}
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-200">
+            👋 Hello, <span class="text-orange-700 dark:text-orange-400">{{ current_user.username }}</span>
+          </span>
+          <form action="{{ url_for('auth.logout') }}" method="POST">
+            <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition">Logout</button>
+          </form>
+        {% else %}
+          <a href="{{ url_for('auth.login') }}" class="text-orange-700 font-semibold hover:underline">Login</a>
+          <a href="{{ url_for('auth.signup') }}" class="text-orange-700 font-semibold hover:underline">Sign Up</a>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Search Form -->
+    <form method="GET" action="{{ url_for('main.index') }}" class="mb-6 flex">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search bookmarks..."
+        value="{{ request.args.get('search', '') }}"
+        class="flex-grow px-4 py-2 border border-orange-300 rounded-l-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+      />
+      <button
+        type="submit"
+        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-r-xl font-semibold"
+      >
+        🔍
+      </button>
+    </form>
+
+    <!-- Tag filters -->
+    <div class="flex flex-wrap gap-2 mb-6 items-center">
+      <a href="{{ url_for('main.index') }}"
+         class="px-3 py-1 rounded-full text-sm font-semibold transition 
+                {{ 'bg-orange-500 text-white' if not selected_tag else 'bg-orange-100 text-orange-600 hover:bg-orange-200' }}">
+        All
+      </a>
+    
+      {% for tag in tags %}
+        {% if selected_tag == tag.name %}
+          <span class="flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-orange-500 text-white">
+            {{ tag.name }}
+            <a href="{{ url_for('main.index') }}"
+               class="ml-2 text-white hover:text-orange-200 font-bold">
+              &times;
+            </a>
+          </span>
+        {% else %}
+          <a href="{{ url_for('main.index', tag=tag.name) }}"
+             class="px-3 py-1 rounded-full text-sm font-semibold bg-orange-100 text-orange-600 hover:bg-orange-200 transition">
+            {{ tag.name }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Add Bookmark Form -->
+    <form method="POST" action="{{ url_for('main.add_bookmark') }}" class="space-y-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg border border-orange-200 dark:border-gray-600 mb-6">
+      <h2 class="text-xl font-semibold">Add a New Bookmark</h2>
+      <input type="text" name="title" placeholder="Bookmark Title" required
+             class="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400" />
+      <input type="url" name="url" placeholder="https://example.com" required
+             class="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400" />
+      <textarea name="description" placeholder="Add a description..." rows="3"
+                class="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"></textarea>
+      <input type="text" name="tags" placeholder="Tags (comma-separated, e.g., reading, work)"
+             class="w-full p-3 border border-yellow-300 dark:border-yellow-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400" />
+      <button type="submit"
+              class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-xl transition duration-300">
+        Add Bookmark
+      </button>
+    </form>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div id="flash-messages" class="space-y-2 mb-4">
+          {% for category, message in messages %}
+            <div class="px-4 py-2 rounded-xl border shadow-sm 
+              {{ 'bg-green-100 text-green-800 border-green-200 dark:bg-green-800 dark:text-green-100' if category == 'success' else 'bg-red-100 text-red-800 border-red-200 dark:bg-red-800 dark:text-red-100' }}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <form method="GET" action="{{ url_for('main.index') }}" class="mb-4 flex gap-4 items-center">
+      <input
+        type="text"
+        name="search"
+        placeholder="Search bookmarks..."
+        value="{{ request.args.get('search', '') }}"
+        class="flex-grow px-4 py-2 border border-orange-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400"
+      />
+    
+      <form method="GET" action="{{ url_for('main.index') }}" class="mb-4">
+        <!-- Preserve current search -->
+        {% if request.args.get('search') %}
+          <input type="hidden" name="search" value="{{ request.args.get('search') }}">
+        {% endif %}
+      
+        <!-- Preserve current tag -->
+        {% if request.args.get('tag') %}
+          <input type="hidden" name="tag" value="{{ request.args.get('tag') }}">
+        {% endif %}
+      
+        <label for="sort" class="mr-2 font-medium">Sort:</label>
+        <select name="sort" id="sort" onchange="this.form.submit()" class="p-2 border rounded-xl">
+          <option value="">Sort by...</option>
+          <option value="title_asc" {% if request.args.get('sort') == 'title_asc' %}selected{% endif %}>Title (A → Z)</option>
+          <option value="title_desc" {% if request.args.get('sort') == 'title_desc' %}selected{% endif %}>Title (Z → A)</option>
+          <option value="date_old" {% if request.args.get('sort') == 'date_old' %}selected{% endif %}>Oldest First</option>
+          <option value="date_new" {% if request.args.get('sort') == 'date_new' %}selected{% endif %}>Newest First</option>
+        </select>
+      </form>
+      
+      
+    
+      <button
+        type="submit"
+        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl font-semibold"
+      >
+        🔍 Search
+      </button>
+    </form>
+        
+
+    <!-- Bookmark List -->
+    <div class="mt-6 space-y-4">
+      {% for bookmark in bookmarks %}
+      <div class="bg-white dark:bg-gray-700 p-4 rounded-2xl shadow-md border border-yellow-100 dark:border-gray-600">
+        <div class="flex items-center space-x-2">
+          <img src="https://www.google.com/s2/favicons?sz=64&domain={{ bookmark.url }}" 
+               class="w-6 h-6" alt="favicon" />
+          <h2 class="text-xl font-semibold">{{ bookmark.title }}</h2>
+        </div>
+        <p class="text-sm text-gray-500 mt-1">
+          📅 Added on: {{ bookmark.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </p>
+        {% if bookmark.description %}
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">{{ bookmark.description }}</p>
+        {% endif %}
+        <a href="{{ bookmark.url }}" class="text-blue-500 hover:underline block" target="_blank">{{ bookmark.url }}</a>
+        {% if bookmark.tags %}
+          <div class="mt-2">
+            <p class="text-sm text-gray-600 dark:text-gray-300">Tags:</p>
+            <div class="flex flex-wrap gap-2 mt-1">
+              {% for tag in bookmark.tags %}
+                <span class="bg-orange-100 dark:bg-orange-800 text-orange-800 dark:text-orange-100 text-xs font-semibold px-2.5 py-0.5 rounded">{{ tag.name }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+        <div class="mt-3 flex items-center gap-4">
+          <form action="/delete/{{ bookmark.id }}" method="post" class="inline">
+            <button type="button"
+                    onclick="confirmDelete('{{ bookmark.id }}')"
+                    class="text-red-500 hover:underline text-sm font-medium align-middle h-6 leading-6">
+              Delete
+            </button>
+          </form>
+          <a href="{{ url_for('main.edit_bookmark', bookmark_id=bookmark.id) }}" 
+             class="text-blue-500 hover:underline text-sm font-medium align-middle h-6 leading-6">
+            Edit
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- No bookmarks message -->
+    {% if not bookmarks %}
+      <div class="mt-6 bg-white dark:bg-gray-700 p-4 rounded-xl text-center text-gray-600 dark:text-gray-300 shadow">
+        No bookmarks found. Start adding some!
+      </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    function confirmDelete(bookmarkId) {
+      if (confirm("Are you sure you want to delete this bookmark?")) {
+        document.querySelector(`form[action="/delete/${bookmarkId}"]`).submit();
+      }
+    }
+
+    // Auto-hide flash messages after 3 seconds
+    setTimeout(() => {
+      const flashBox = document.getElementById('flash-messages');
+      if (flashBox) flashBox.style.display = 'none';
+    }, 3000);
+
+    // Dark mode toggle
+    function toggleDarkMode() {
+      document.documentElement.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+    }
+
+    // Persist dark mode preference
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+
+</body>
+</html>

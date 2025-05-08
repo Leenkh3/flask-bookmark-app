@@ -1,0 +1,4 @@
+
+@import "tailwindcss";
+
+<body style="font-family: 'Inter', sans-serif;" class="text-gray-800 dark:text-gray-100 bg-gradient-to-r from-orange-50 via-orange-100 to-orange-200 dark:from-gray-900 dark:to-gray-800 min-h-screen p-6 transition-colors duration-500">
