@@ -79,7 +79,7 @@ cd <repository-name>
 2.	Create a virtual environment and activate it:
 python -m venv venv
 #Linux or macOS: source venv/bin/activate  
-# On Windows: venv\Scripts\activate
+#On Windows: venv\Scripts\activate
 3.	Install dependencies:
 pip install -r requirements.txt
 4.	Create a .env file and add the following:
